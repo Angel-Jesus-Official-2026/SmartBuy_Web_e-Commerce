@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartBuy | Tienda Accesible</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="images/logo.png">
+
+    <!-- Fuente principal y fallback -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Iconos accesibles -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- PDF Generation Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <!-- Estilos personalizados -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="antialiased flex flex-col min-h-screen">
+
+<!-- Inicio de HTML (sin estilos embebidos) -->
+<!-- Las variables CSS y estilos ahora están en css/style.css -->
+
+<!-- Indicador Lector Activo -->
+<div id="tts-active-banner" class="hidden bg-blue-600 text-white font-bold text-center py-2 px-4 sticky top-0 z-50 text-sm md:text-base flex justify-center items-center gap-2 shadow-lg" role="alert">
+    <i data-lucide="volume-2" class="w-5 h-5 animate-pulse"></i>
+    Lector en Voz Alta Activado. Navegue con el ratón o teclado.
+</div>
+
+
+    <!-- Encabezado Responsive -->
+    <header class="sticky top-0 z-40 py-4 md:py-6 px-4 md:px-8 bg-opacity-90 backdrop-blur-md" style="background-color: var(--bg-color);">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
+            <a href="#" onclick="switchView('catalog'); return false;" class="neo-flat px-4 md:px-6 py-2 md:py-3 rounded-2xl flex items-center gap-3 hover:scale-105 transition-transform shrink-0 relative" aria-label="Ir al inicio - SmartBuy" data-speak="Ir a la página principal de Smart Buy">
+                <div class="relative w-8 h-8 md:w-10 md:h-10">
+                    <img src="images/logo.png" alt="SmartBuy Logo" class="logo-normal w-8 h-8 md:w-10 md:h-10 object-contain" aria-hidden="true">
+                    <img src="images/logo-dark.png" alt="SmartBuy Logo - Dark" class="logo-dark w-8 h-8 md:w-10 md:h-10 object-contain" aria-hidden="true">
+                </div>
+                <span class="font-extrabold text-xl md:text-2xl tracking-tight" style="color: var(--text-main);">SmartBuy</span>
+            </a>
+
+            <nav aria-label="Navegación principal" class="flex items-center gap-2 md:gap-4 ml-auto">
+                <button onclick="switchView('settings')" class="neo-button p-3 md:p-4 rounded-full flex items-center justify-center relative" aria-label="Ajustes y Accesibilidad" data-speak="Menú de Ajustes y Accesibilidad">
+                    <i data-lucide="settings" class="w-5 h-5 md:w-6 md:h-6" style="color: var(--text-main);" aria-hidden="true"></i>
+                </button>
+                <button onclick="openCartModal()" class="neo-button p-3 md:p-4 rounded-full flex items-center justify-center relative" aria-label="Abrir carrito de compras" data-speak="Carrito de compras">
+                    <i data-lucide="shopping-cart" class="w-5 h-5 md:w-6 md:h-6" style="color: var(--text-main);" aria-hidden="true"></i>
+                    <span id="cart-count" class="absolute top-0 right-0 -mt-1 -mr-1 neo-flat bg-blue-100 text-blue-700 text-xs font-extrabold w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center" aria-hidden="true">0</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main id="main-content" class="flex-grow max-w-7xl mx-auto w-full px-4 md:px-8 py-8 md:py-12">
+
+        <!-- ==========================================
+             VISTA 1: CATÁLOGO DE PRODUCTOS (DINÁMICO)
+             ========================================== -->
+        <section id="catalog" class="view-section active" aria-labelledby="catalog-title">
+            <div class="mb-8 flex flex-col justify-between items-start gap-4">
+                <h1 id="catalog-title" class="text-3xl md:text-5xl font-extrabold mb-2 tracking-tight" style="color: var(--text-main);" tabindex="-1" data-speak="Catálogo de productos">Catálogo de productos</h1>
+                <p class="text-base md:text-lg font-medium" style="color: var(--text-muted);" data-speak="Descubre nuestra colección premium diseñada para tus sentidos.">Descubre nuestra colección premium diseñada para tus sentidos.</p>
+            </div>
+
+            <!-- Lista de productos generada dinámicamente -->
+            <ul id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+                <!-- Los 20 productos se insertan aquí vía JS -->
+            </ul>
+        </section>
+
+
+        <!-- ==========================================
+             VISTA 2: AJUSTES Y ACCESIBILIDAD
+             ========================================== -->
+        <section id="settings" class="view-section" aria-labelledby="settings-title">
+            <button onclick="switchView('catalog')" class="mb-6 flex items-center gap-2 font-bold hover:underline focus:underline" style="color: var(--accent);" aria-label="Volver al catálogo" data-speak="Regresar al catálogo">
+                <i data-lucide="arrow-left" class="w-5 h-5" aria-hidden="true"></i> Volver al catálogo
+            </button>
+
+            <div class="max-w-3xl mx-auto">
+                <h1 id="settings-title" class="text-3xl md:text-4xl font-extrabold mb-8" style="color: var(--text-main);" tabindex="-1" data-speak="Ajustes de Preferencias y Accesibilidad">Ajustes y Accesibilidad</h1>
+
+                <div class="space-y-8">
+                    <fieldset class="neo-flat p-6 md:p-8 rounded-[2rem]">
+                        <legend class="text-xl md:text-2xl font-bold mb-6 px-2 flex items-center gap-3" style="color: var(--text-main);">
+                            <i data-lucide="user-cog" class="w-6 h-6" style="color: var(--accent);"></i> Preferencias Generales
+                        </legend>
+
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 py-4 border-b border-gray-300/30">
+                            <div class="flex-1">
+                                <h3 class="font-bold text-lg" style="color: var(--text-main);" data-speak="Tema de Alto Contraste">Alto Contraste</h3>
+                                <p class="text-sm font-medium" style="color: var(--text-muted);" data-speak="Desactiva los efectos 3D y utiliza colores sólidos oscuros.">Colores sólidos oscuros para personas con debilidad visual.</p>
+                            </div>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="checkbox" id="toggle-contrast" class="neo-toggle" onchange="toggleHighContrast()" aria-label="Activar Alto Contraste">
+                            </label>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="neo-flat p-6 md:p-8 rounded-[2rem]">
+                        <legend class="text-xl md:text-2xl font-bold mb-6 px-2 flex items-center gap-3" style="color: var(--text-main);">
+                            <i data-lucide="eye" class="w-6 h-6" style="color: var(--accent);"></i> Discapacidad Visual y Lectura
+                        </legend>
+
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 py-4 border-b border-gray-300/30">
+                            <div class="flex-1">
+                                <h3 class="font-bold text-lg" style="color: var(--text-main);" data-speak="Lector en Voz Alta Integrado">Lector en Voz Alta Integrado</h3>
+                                <p class="text-sm font-medium" style="color: var(--text-muted);" data-speak="Lee en voz alta los elementos al pasar el ratón o enfocar con el teclado.">Lee en voz alta los elementos al pasar el ratón o enfocar.</p>
+                            </div>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="checkbox" id="toggle-tts" class="neo-toggle" onchange="toggleTTS()" aria-label="Activar Lector en Voz Alta">
+                            </label>
+                        </div>
+
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 py-4 border-b border-gray-300/30">
+                            <div class="flex-1">
+                                <h3 class="font-bold text-lg" style="color: var(--text-main);" data-speak="Fuente para Dislexia">Fuente para Dislexia</h3>
+                                <p class="text-sm font-medium" style="color: var(--text-muted);" data-speak="Cambia a una fuente con mayor asimetría para facilitar la lectura.">Cambia a una fuente con mayor asimetría para facilitar la lectura.</p>
+                            </div>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="checkbox" id="toggle-dyslexia" class="neo-toggle" onchange="toggleDyslexicFont()" aria-label="Activar Fuente para dislexia">
+                            </label>
+                        </div>
+
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 py-4">
+                            <div class="flex-1">
+                                <h3 class="font-bold text-lg" style="color: var(--text-main);" data-speak="Tamaño de Texto">Tamaño de Texto Global</h3>
+                                <p class="text-sm font-medium" style="color: var(--text-muted);" data-speak="Aumenta o disminuye el tamaño de toda la interfaz.">Aumenta o disminuye el tamaño de toda la interfaz.</p>
+                            </div>
+                            <div class="flex gap-3">
+                                <button onclick="adjustTextSize(-1)" class="neo-button w-12 h-12 rounded-full font-bold flex items-center justify-center text-xl" style="color: var(--text-main);" aria-label="Reducir tamaño de texto" data-speak="Reducir texto"><i data-lucide="minus"></i></button>
+                                <button onclick="adjustTextSize(1)" class="neo-button w-12 h-12 rounded-full font-bold flex items-center justify-center text-xl" style="color: var(--text-main);" aria-label="Aumentar tamaño de texto" data-speak="Aumentar texto"><i data-lucide="plus"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 py-4 border-t border-gray-300/30">
+                            <div class="flex-1">
+                                <h3 class="font-bold text-lg" style="color: var(--text-main);" data-speak="Versión de la aplicación">Versión de la Aplicación</h3>
+                                <p class="text-sm font-medium" style="color: var(--text-muted);" data-speak="SmartBuy E-Commerce versión 1.0">SmartBuy E-Commerce versión 1.0 - Release estable</p>
+                            </div>
+                            <div class="neo-button px-4 py-2 rounded-full font-bold" style="color: var(--accent); background-color: rgba(37, 99, 235, 0.1);" data-speak="Versión 1.0">
+                                v1.0
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==========================================
+             VISTA 3: FORMULARIO DE COMPRA (CHECKOUT)
+             ========================================== -->
+        <section id="checkout" class="view-section" aria-labelledby="checkout-title">
+            <button onclick="switchView('catalog')" class="mb-6 flex items-center gap-2 font-bold hover:underline focus:underline" style="color: var(--accent);" aria-label="Volver al catálogo" data-speak="Regresar al catálogo">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i> Volver al catálogo
+            </button>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12">
+                <div class="lg:col-span-2">
+                    <h1 id="checkout-title" class="text-3xl md:text-4xl font-extrabold mb-6 tracking-tight" style="color: var(--text-main);" tabindex="-1" data-speak="Finalizar Compra">Finalizar Compra</h1>
+
+                    <form id="checkout-form" onsubmit="handleCheckoutSubmit(event)" novalidate class="space-y-8">
+
+                        <!-- 1. INFORMACIÓN DE ENVÍO -->
+                        <fieldset class="neo-flat p-6 md:p-8 rounded-[2rem]">
+                            <legend class="text-xl md:text-2xl font-bold mb-6 px-2" style="color: var(--text-main);" data-speak="1. Información de Envío">1. Información de Envío</legend>
+                            <div class="space-y-5">
+                                <div class="flex flex-col gap-2">
+                                    <label for="fullName" class="font-bold text-lg" style="color: var(--text-main);" data-speak="Nombre Completo">Nombre Completo</label>
+                                    <input type="text" id="fullName" name="fullName" required class="neo-input rounded-2xl py-3 px-5 border-none font-medium focus:ring-0">
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <label for="address" class="font-bold text-lg" style="color: var(--text-main);" data-speak="Dirección">Dirección</label>
+                                    <textarea id="address" name="address" required rows="2" class="neo-input rounded-2xl py-3 px-5 border-none font-medium focus:ring-0 resize-none"></textarea>
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <!-- 2. MÉTODO DE PAGO AVANZADO -->
+                        <fieldset class="neo-flat p-6 md:p-8 rounded-[2rem]">
+                            <legend class="text-xl md:text-2xl font-bold mb-6 px-2" style="color: var(--text-main);" data-speak="2. Método de Pago">2. Seleccione su Método de Pago</legend>
+
+                            <!-- Opciones de pago (Grid Responsivo) -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8" role="radiogroup" aria-labelledby="payment-methods-label">
+                                <span id="payment-methods-label" class="sr-only">Selecciona tu método de pago</span>
+
+                                <label class="neo-flat neo-radio-container" data-speak="Pagar con Tarjeta">
+                                    <input type="radio" name="payment" value="tarjeta" class="neo-radio-input" checked onchange="togglePaymentDetails()">
+                                    <span class="font-bold flex items-center gap-2" style="color: var(--text-main);"><i data-lucide="credit-card" class="w-5 h-5 text-blue-500"></i> Tarjeta</span>
+                                </label>
+
+                                <label class="neo-flat neo-radio-container" data-speak="Pagar con PayPal">
+                                    <input type="radio" name="payment" value="paypal" class="neo-radio-input" onchange="togglePaymentDetails()">
+                                    <span class="font-bold flex items-center gap-2" style="color: var(--text-main);"><i data-lucide="wallet" class="w-5 h-5 text-blue-700"></i> PayPal</span>
+                                </label>
+
+                                <label class="neo-flat neo-radio-container" data-speak="Pagar con Criptomonedas">
+                                    <input type="radio" name="payment" value="cripto" class="neo-radio-input" onchange="togglePaymentDetails()">
+                                    <span class="font-bold flex items-center gap-2" style="color: var(--text-main);"><i data-lucide="bitcoin" class="w-5 h-5 text-orange-500"></i> Cripto</span>
+                                </label>
+
+                                <label class="neo-flat neo-radio-container" data-speak="Pagar con moneda virtual WORLD">
+                                    <input type="radio" name="payment" value="world" class="neo-radio-input" onchange="togglePaymentDetails()">
+                                    <span class="font-bold flex items-center gap-2" style="color: var(--text-main);"><i data-lucide="globe" class="w-5 h-5 text-indigo-500"></i> WORLD</span>
+                                </label>
+
+                                <label class="neo-flat neo-radio-container" data-speak="Pagar en efectivo en Oxxo">
+                                    <input type="radio" name="payment" value="oxxo" class="neo-radio-input" onchange="togglePaymentDetails()">
+                                    <span class="font-bold flex items-center gap-2" style="color: var(--text-main);"><i data-lucide="store" class="w-5 h-5 text-red-500"></i> OXXO Pay</span>
+                                </label>
+
+                                <label class="neo-flat neo-radio-container" data-speak="Pagar mediante Transferencia SPEI">
+                                    <input type="radio" name="payment" value="spei" class="neo-radio-input" onchange="togglePaymentDetails()">
+                                    <span class="font-bold flex items-center gap-2" style="color: var(--text-main);"><i data-lucide="arrow-right-left" class="w-5 h-5 text-teal-500"></i> Transf. SPEI</span>
+                                </label>
+
+                                <label class="neo-flat neo-radio-container" data-speak="Pagar mediante Depósito Bancario">
+                                    <input type="radio" name="payment" value="deposito" class="neo-radio-input" onchange="togglePaymentDetails()">
+                                    <span class="font-bold flex items-center gap-2" style="color: var(--text-main);"><i data-lucide="landmark" class="w-5 h-5 text-emerald-600"></i> Depósito</span>
+                                </label>
+                            </div>
+
+                            <!-- CONTENEDORES DINÁMICOS DE DETALLES DE PAGO -->
+
+                            <!-- Detalles: Tarjeta -->
+                            <div id="details-tarjeta" class="payment-detail-block space-y-5">
+                                <div class="flex flex-col gap-2">
+                                    <label for="cardNumber" class="font-bold text-lg" style="color: var(--text-main);" data-speak="Número de Tarjeta">Número de Tarjeta</label>
+                                    <input type="text" id="cardNumber" class="neo-input req-input rounded-2xl py-3 px-5 border-none font-medium focus:ring-0 tracking-widest" placeholder="0000 0000 0000 0000" aria-label="16 dígitos de la tarjeta">
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="flex flex-col gap-2">
+                                        <label for="expDate" class="font-bold text-lg" style="color: var(--text-main);" data-speak="Fecha de Expiración">Expiración</label>
+                                        <input type="text" id="expDate" class="neo-input req-input rounded-2xl py-3 px-5 border-none font-medium focus:ring-0" placeholder="MM/AA">
+                                    </div>
+                                    <div class="flex flex-col gap-2">
+                                        <label for="cvv" class="font-bold text-lg" style="color: var(--text-main);" data-speak="Código C V V">CVV</label>
+                                        <input type="password" id="cvv" class="neo-input req-input rounded-2xl py-3 px-5 border-none font-medium focus:ring-0 tracking-widest" placeholder="***" maxlength="4">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Detalles: Cripto -->
+                            <div id="details-cripto" class="payment-detail-block hidden-detail space-y-5">
+                                <div class="flex flex-col gap-2">
+                                    <label for="cryptoType" class="font-bold text-lg" style="color: var(--text-main);" data-speak="Seleccione el tipo de Criptomoneda">Selecciona tu Criptomoneda</label>
+                                    <select id="cryptoType" class="neo-input req-input rounded-2xl py-3 px-5 border-none font-medium focus:ring-0 cursor-pointer">
+                                        <option value="" disabled selected>Elige una moneda...</option>
+                                        <option value="btc">Bitcoin (Red BTC)</option>
+                                        <option value="eth">Ethereum (Red ERC-20)</option>
+                                        <option value="usdt">Tether USDT (Red TRC-20)</option>
+                                        <option value="sol">Solana (Red SOL)</option>
+                                    </select>
+                                </div>
+                                <div class="p-4 neo-inset rounded-2xl font-medium flex items-start gap-3 mt-2" style="color: var(--text-muted);" data-speak="Instrucción: Al proceder, se generará un código Q R y una dirección de billetera con el monto exacto convertido al instante.">
+                                    <i data-lucide="info" class="w-6 h-6 text-orange-500 shrink-0"></i>
+                                    <p>Al proceder, se generará un código QR y una dirección de billetera única con el monto exacto convertido al instante.</p>
+                                </div>
+                            </div>
+
+                            <!-- Detalles: WORLD -->
+                            <div id="details-world" class="payment-detail-block hidden-detail space-y-5">
+                                <div class="flex flex-col gap-2">
+                                    <label for="worldId" class="font-bold text-lg" style="color: var(--text-main);" data-speak="Ingresa tu World I D o vincula tu cuenta">Tu World ID o Wallet</label>
+                                    <input type="text" id="worldId" class="neo-input req-input rounded-2xl py-3 px-5 border-none font-medium focus:ring-0" placeholder="Ej: 0xWorldApp123...">
+                                </div>
+                                <button type="button" class="neo-button w-full py-3 rounded-xl font-bold flex justify-center items-center gap-2 mt-2" style="color: var(--text-main);" data-speak="Botón: Conectar con World App directamente">
+                                    <i data-lucide="smartphone" class="w-5 h-5"></i> Conectar con World App
+                                </button>
+                            </div>
+
+                            <!-- Detalles: OXXO -->
+                            <div id="details-oxxo" class="payment-detail-block hidden-detail space-y-5">
+                                <div class="p-4 neo-inset rounded-2xl font-medium flex items-start gap-3 mt-2" style="color: var(--text-muted);" data-speak="Instrucción de Oxxo: Generaremos una referencia de pago de 14 dígitos que podrás dictar o escanear en caja.">
+                                    <i data-lucide="receipt" class="w-6 h-6 text-red-500 shrink-0"></i>
+                                    <p>Al confirmar tu compra, generaremos una <strong>referencia de pago de 14 dígitos</strong> y un código de barras que podrás dictar o escanear en cualquier caja OXXO del país.</p>
+                                </div>
+                            </div>
+
+                            <!-- Detalles: SPEI -->
+                            <div id="details-spei" class="payment-detail-block hidden-detail space-y-5">
+                                <div class="p-4 neo-inset rounded-2xl font-medium flex items-start gap-3 mt-2" style="color: var(--text-muted);" data-speak="Instrucción SPEI: Te proporcionaremos una cuenta CLABE de 18 dígitos para realizar la transferencia desde la app de tu banco.">
+                                    <i data-lucide="smartphone-nfc" class="w-6 h-6 text-teal-500 shrink-0"></i>
+                                    <p>Te proporcionaremos una cuenta CLABE única de 18 dígitos. Podrás realizar la transferencia 24/7 desde la aplicación móvil de tu banco preferido.</p>
+                                </div>
+                            </div>
+
+                            <!-- Detalles: Banco -->
+                            <div id="details-deposito" class="payment-detail-block hidden-detail space-y-5">
+                                <div class="flex flex-col gap-2">
+                                    <label for="bankSelect" class="font-bold text-lg" style="color: var(--text-main);" data-speak="Seleccione el banco para depositar">Selecciona el Banco para depositar</label>
+                                    <select id="bankSelect" class="neo-input req-input rounded-2xl py-3 px-5 border-none font-medium focus:ring-0 cursor-pointer">
+                                        <option value="" disabled selected>Elige un banco...</option>
+                                        <option value="bbva">BBVA Bancomer</option>
+                                        <option value="banamex">Citibanamex</option>
+                                        <option value="santander">Santander</option>
+                                        <option value="banorte">Banorte</option>
+                                    </select>
+                                </div>
+                                <p class="text-sm font-medium mt-2" style="color: var(--text-muted);" data-speak="Te brindaremos el número de cuenta o convenio exacto en el siguiente paso.">Te brindaremos el número de cuenta o convenio exacto en el siguiente paso.</p>
+                            </div>
+
+                            <!-- Detalles: PayPal (Solo Mensaje) -->
+                            <div id="details-paypal" class="payment-detail-block hidden-detail space-y-5">
+                                <div class="p-4 neo-inset rounded-2xl font-medium flex items-start gap-3 mt-2" style="color: var(--text-muted);" data-speak="Instrucción de PayPal: Serás redirigido de forma segura a la plataforma de PayPal para autorizar el cargo.">
+                                    <i data-lucide="shield-check" class="w-6 h-6 text-blue-600 shrink-0"></i>
+                                    <p>Serás redirigido de forma segura a la plataforma de PayPal para iniciar sesión y autorizar el cargo sin compartir tu información financiera con nosotros.</p>
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <button type="submit" class="neo-button w-full py-4 rounded-[2rem] font-extrabold text-xl text-white bg-blue-600 border border-blue-500 hover:bg-blue-700 flex justify-center items-center gap-3 mt-6" data-speak="Botón: Confirmar y Pagar Ahora">
+                            <i data-lucide="check-square" class="w-6 h-6" aria-hidden="true"></i> Completar Pedido Seguramente
+                        </button>
+                    </form>
+                </div>
+
+                <aside class="lg:col-span-1">
+                    <div class="neo-flat p-6 md:p-8 rounded-[2rem] sticky top-28">
+                        <h2 class="text-xl md:text-2xl font-bold mb-4" style="color: var(--text-main);" data-speak="Resumen del pedido">Resumen del Pedido</h2>
+
+                        <div class="mb-6 pb-6 border-b border-gray-300" id="checkout-items-list">
+                            <!-- Items del carrito se renderizarán aquí -->
+                        </div>
+
+                        <ul class="space-y-4 mb-6 border-b border-gray-300 pb-6" style="color: var(--text-muted);">
+                            <li class="flex justify-between items-center font-medium">
+                                <span data-speak="Subtotal">Subtotal</span>
+                                <span id="checkout-subtotal">$0 MXN</span>
+                            </li>
+                            <li class="flex justify-between items-center font-medium text-green-600">
+                                <span data-speak="Envío Gratis">Envío</span>
+                                <span data-speak="Envío Gratis">Gratis</span>
+                            </li>
+                            <li id="checkout-discount-line" class="flex justify-between items-center font-medium text-orange-600 hidden">
+                                <span data-speak="Descuento aplicado">Descuento</span>
+                                <span id="checkout-discount-amount">-$0 MXN</span>
+                            </li>
+                        </ul>
+                        <div class="flex justify-between items-end">
+                            <span class="text-lg font-bold" style="color: var(--text-main);">Total a Pagar</span>
+                            <span class="text-2xl md:text-3xl font-black" id="checkout-total" style="color: var(--accent);">$0 MXN</span>
+                        </div>
+
+                        <button onclick="if(cart.length === 0) { alert('Tu carrito está vacío'); return; }" class="w-full mt-6 text-xs text-gray-500 hover:text-gray-700 underline" data-speak="Botón para editar carrito">
+                            ← Editar carrito
+                        </button>
+                    </div>
+                </aside>
+            </div>
+        </section>
+
+        <!-- ==========================================
+             VISTA 4: CONFIRMACIÓN
+             ========================================== -->
+        <section id="confirmation" class="view-section" aria-labelledby="confirmation-title">
+            <div class="max-w-4xl mx-auto space-y-8">
+                <!-- Mensaje de Éxito -->
+                <div role="alert" aria-live="assertive" class="neo-flat p-8 md:p-16 rounded-[3rem] text-center">
+                    <i data-lucide="check-circle" class="w-16 h-16 text-green-500 mx-auto mb-6" aria-hidden="true"></i>
+                    <h1 id="confirmation-title" class="text-3xl md:text-5xl font-extrabold mb-2" style="color: var(--text-main);" tabindex="-1" data-speak="Transacción Procesada">¡Transacción Procesada!</h1>
+                    <p class="text-lg md:text-xl font-medium" style="color: var(--text-muted);" data-speak="Tu pedido ha sido recibido">Tu pedido ha sido recibido correctamente y será procesado a la brevedad.</p>
+                </div>
+
+                <!-- Resumen del Pedido -->
+                <div id="order-summary-display"></div>
+
+                <!-- Visualizador de Recibo en HTML -->
+                <div class="neo-flat rounded-3xl p-8 md:p-12" id="receipt-viewer">
+                    <div class="max-w-2xl mx-auto">
+                        <!-- Encabezado del Recibo -->
+                        <div class="text-center border-b-2" style="border-color: var(--accent); padding-bottom: 20px; margin-bottom: 20px;">
+                            <h2 class="text-3xl font-bold mb-2" style="color: var(--text-main);">SmartBuy</h2>
+                            <p class="text-lg font-semibold mb-3" style="color: var(--text-muted);">E-COMMERCE ACCESIBLE</p>
+                            <div class="bg-red-100 text-red-700 px-4 py-2 rounded-xl inline-block mb-2 font-bold">
+                                ⚠️ ESTE NO ES UN RECIBO OFICIAL
+                            </div>
+                            <p class="text-sm" style="color: var(--text-muted); margin-top: 8px;">Recibo de demostración con propósitos educativos</p>
+                        </div>
+
+                        <!-- Información de Orden -->
+                        <div class="mb-8">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-xs font-bold text-gray-500 uppercase mb-1">Número de Orden</p>
+                                    <p id="receipt-order-id" class="text-lg font-bold" style="color: var(--accent);"></p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-gray-500 uppercase mb-1">Fecha y Hora</p>
+                                    <p id="receipt-order-date" class="text-lg font-bold" style="color: var(--text-main);"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Datos del Cliente -->
+                        <div class="rounded-xl p-5 mb-8 border-l-4" style="border-color: var(--accent); background-color: rgba(37, 99, 235, 0.08);">
+                            <h3 class="font-bold mb-3 flex items-center gap-2" style="color: var(--text-main);">
+                                <i data-lucide="package" class="w-5 h-5"></i> Datos de Envío
+                            </h3>
+                            <p id="receipt-customer-name" class="font-semibold mb-2" style="color: var(--text-main);"></p>
+                            <p id="receipt-customer-address" class="text-sm" style="color: var(--text-muted); white-space: pre-wrap; line-height: 1.6;"></p>
+                        </div>
+
+                        <!-- Detalle de Compra -->
+                        <div class="rounded-xl p-5 mb-8 border-l-4" style="border-color: var(--accent); background-color: rgba(37, 99, 235, 0.06);">
+                            <h3 class="font-bold mb-4 flex items-center gap-2" style="color: var(--text-main);">
+                                <i data-lucide="shopping-cart" class="w-5 h-5"></i> Artículos Comprados
+                            </h3>
+                            <div id="receipt-items-list" style="color: var(--text-main);"></div>
+                        </div>
+
+                        <!-- Resumen de Pago -->
+                        <div class="rounded-xl p-5 mb-8 border-l-4" style="border-color: var(--accent); background-color: rgba(37, 99, 235, 0.07);">
+                            <h3 class="font-bold mb-4 flex items-center gap-2" style="color: var(--text-main);">
+                                <i data-lucide="credit-card" class="w-5 h-5"></i> Resumen de Pago
+                            </h3>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span style="color: var(--text-muted);">Subtotal:</span>
+                                    <span id="receipt-subtotal" class="font-semibold" style="color: var(--text-main);"></span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span style="color: var(--text-muted);">Envío (Estándar):</span>
+                                    <span class="font-semibold" style="color: var(--accent);">GRATIS</span>
+                                </div>
+                                <div id="receipt-discount-line" class="flex justify-between hidden">
+                                    <span style="color: var(--text-muted);">Descuento:</span>
+                                    <span id="receipt-discount-amount" class="font-semibold" style="color: var(--accent);"></span>
+                                </div>
+                                <div class="border-t-2 pt-2 mt-3 flex justify-between" style="border-color: var(--accent);">
+                                    <span class="font-bold" style="color: var(--text-main);">TOTAL:</span>
+                                    <span id="receipt-total" class="font-bold text-xl" style="color: var(--accent);"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Método de Pago -->
+                        <div class="border-l-4 rounded-xl p-5 mb-8" style="border-color: var(--accent); background-color: rgba(37, 99, 235, 0.05);">
+                            <h3 class="font-bold mb-3 flex items-center gap-2" style="color: var(--text-main);">
+                                <i data-lucide="wallet" class="w-5 h-5"></i> Método de Pago
+                            </h3>
+                            <p id="receipt-payment-method" style="color: var(--text-muted);"></p>
+                        </div>
+
+                        <!-- Créditos y Versión -->
+                        <div class="text-center rounded-xl p-5 mb-8 text-xs" style="color: var(--text-muted); background-color: rgba(37, 99, 235, 0.06);">
+                            <p class="font-semibold mb-2">© <span id="receipt-year"></span> SmartBuy v1.0 - E-Commerce Accesible</p>
+                            <p class="mb-1">Desarrollado por: Cahuich Colli Angel Jesús • Canul Canto Isabel del Rosario • Cruz Martinez Alejandro • Chulin Cortéz José Antonio • Pérez Gracía Alexander</p>
+                            <p>Catedrático: Ing. José Aguilar Canepa | Ejercicio #5: Programación de Interfaces Gráficas (LP3)</p>
+                        </div>
+
+                        <!-- Mensaje de Cierre -->
+                        <div class="text-center border-t-2 pt-8" style="border-color: var(--accent);">
+                            <p class="font-bold text-lg mb-2" style="color: var(--text-main);">¡Gracias por tu compra!</p>
+                            <p class="text-sm mb-1" style="color: var(--text-muted);">Tu pedido será entregado en 3 a 5 días hábiles</p>
+                            <p class="text-xs" style="color: var(--text-muted);">Revisa tu email para actualizaciones de rastreo</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción Adicionales -->
+                <div class="flex flex-col sm:flex-row gap-4 mt-8">
+                    <button onclick="switchView('catalog')" class="neo-button flex-1 py-4 rounded-2xl font-bold flex items-center justify-center gap-2" style="color: var(--text-main);" data-speak="Volver al catálogo">
+                        <i data-lucide="home" class="w-5 h-5"></i> Volver al Catálogo
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal del Carrito de Compras -->
+    <div id="cart-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 hidden" style="background-color: rgba(0,0,0,0.6); backdrop-filter: blur(4px);" aria-modal="true" role="dialog" aria-labelledby="cart-title">
+        <div class="neo-flat bg-[#e0e5ec] rounded-[3rem] max-w-4xl w-full max-h-[90vh] overflow-y-auto flex flex-col modal-enter" style="background-color: var(--bg-color);">
+            <div class="p-6 md:p-8 border-b border-gray-300/30 sticky top-0" style="background-color: var(--bg-color);">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 id="cart-title" class="text-3xl md:text-4xl font-extrabold" style="color: var(--text-main);" tabindex="-1" data-speak="Mi Carrito">Mi Carrito</h2>
+                    <button onclick="closeCartModal()" class="neo-button w-12 h-12 rounded-full font-bold flex items-center justify-center" aria-label="Cerrar carrito" style="color: var(--text-main);" data-speak="Cerrar carrito">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+                <p style="color: var(--text-muted);" data-speak="Revisa y ajusta los productos en tu carrito antes de pagar">Revisa y ajusta los productos en tu carrito antes de pagar</p>
+            </div>
+
+            <div class="flex-1 p-6 md:p-8 space-y-4">
+                <div id="cart-items" class="space-y-4"></div>
+            </div>
+
+            <div class="bg-opacity-50 p-6 md:p-8 border-t border-gray-300/30" style="background-color: rgba(0,0,0,0.02);">
+                <div id="cart-summary"></div>
+
+                <div class="flex flex-col sm:flex-row gap-4 mt-6">
+                    <button class="neo-button flex-1 py-4 rounded-2xl font-bold" style="color: var(--text-main);" onclick="closeCartModal()" data-speak="Continuar comprando">
+                        Continuar Comprando
+                    </button>
+                    <button id="cart-continue-btn" class="neo-button neo-button-primary flex-1 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 bg-blue-600 border border-blue-500" style="color: white;" onclick="if(cart.length > 0) { closeCartModal(); switchView('checkout'); } else { alert('Tu carrito está vacío'); }" data-speak="Ir a pagar">
+                        <i data-lucide="credit-card" class="w-5 h-5" aria-hidden="true"></i> Ir a Pagar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalles de Producto -->
+    <div id="product-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 hidden" style="background-color: rgba(0,0,0,0.6); backdrop-filter: blur(4px);" aria-modal="true" role="dialog" aria-labelledby="modal-product-name">
+        <div class="neo-flat bg-[#e0e5ec] rounded-[3rem] max-w-4xl w-full flex flex-col md:flex-row relative modal-enter" style="background-color: var(--bg-color);">
+            <button onclick="closeProductModal()" class="absolute top-6 right-6 neo-button w-12 h-12 rounded-full font-bold flex items-center justify-center z-10" aria-label="Cerrar detalles de producto" style="color: var(--text-main);" data-speak="Cerrar ventana de detalles">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+
+            <div class="md:w-1/2 p-6 md:p-8">
+                <div class="w-full h-64 md:h-full min-h-[300px] neo-inset rounded-[2rem] overflow-hidden flex items-center justify-center">
+                    <img id="modal-product-image" src="" alt="Imagen de producto" class="w-full h-full object-cover rounded-[1.5rem]">
+                </div>
+            </div>
+
+            <div class="md:w-1/2 p-6 md:p-8 md:pl-0 flex flex-col justify-center">
+                <h2 id="modal-product-name" class="text-3xl font-extrabold mb-2" style="color: var(--text-main);" tabindex="-1"></h2>
+                <p id="modal-product-price" class="text-2xl font-black mb-6" style="color: var(--accent);"></p>
+                <p id="modal-product-description" class="font-medium text-lg leading-relaxed mb-8 flex-1" style="color: var(--text-muted);"></p>
+
+                <div class="flex gap-4 mt-auto">
+                    <button class="neo-button flex-1 py-4 rounded-2xl font-bold" style="color: var(--text-main);" onclick="closeProductModal()" data-speak="Regresar al catálogo">
+                        Regresar
+                    </button>
+                    <button class="neo-button neo-button-primary flex-1 py-4 rounded-2xl font-bold flex items-center justify-center gap-2" onclick="addToCart(currentProductId); closeProductModal(); openCartModal();" data-speak="Agregar producto al carrito y comprar">
+                        <i data-lucide="shopping-cart" class="w-5 h-5"></i> Comprar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer con Créditos Visuales Animados -->
+    <footer class="mt-auto pt-12 pb-8 px-4 text-center font-medium" style="background-color: rgba(0,0,0,0.05);">
+        <div class="max-w-5xl mx-auto">
+            <h3 class="text-xl font-bold mb-2" style="color: var(--text-main);" data-speak="Ejercicio 5, Programación de Interfaces Gráficas de Usuario">Ejercicio #5, Programación de Interfáces Gráficas de Usuario (LP3)</h3>
+            <p class="mb-8" style="color: var(--text-muted);" data-speak="Catedrático Ingeniero José Aguilar Canepa">Catedrático: Ing. José Aguilar Canepa <span class="mx-2">|</span> Fecha: 13 de Abril de 2026</p>
+
+            <p class="text-lg font-bold mb-6" style="color: var(--text-main);" data-speak="Desarrollado por el equipo de:">Desarrollado por el equipo de:</p>
+
+            <ul class="flex flex-wrap justify-center gap-6 text-sm mb-12">
+                <li class="credit-capsule neo-button" style="--credit-color: #3b82f6;" data-speak="Cahuich Colli Angel Jesús">
+                    <div class="px-6 py-4 rounded-full w-full h-full flex items-center justify-center" style="background-color: var(--bg-color);">
+                        <span class="relative z-10 font-bold" style="color: var(--text-main);">Cahuich Colli Angel Jesús</span>
+                    </div>
+                </li>
+                <li class="credit-capsule neo-button" style="--credit-color: #ec4899;" data-speak="Canul Canto Isabel del Rosario">
+                    <div class="px-6 py-4 rounded-full w-full h-full flex items-center justify-center" style="background-color: var(--bg-color);">
+                        <span class="relative z-10 font-bold" style="color: var(--text-main);">Canul Canto Isabel del Rosario</span>
+                    </div>
+                </li>
+                <li class="credit-capsule neo-button" style="--credit-color: #10b981;" data-speak="Cruz Martinez Alejandro">
+                    <div class="px-6 py-4 rounded-full w-full h-full flex items-center justify-center" style="background-color: var(--bg-color);">
+                        <span class="relative z-10 font-bold" style="color: var(--text-main);">Cruz Martinez Alejandro</span>
+                    </div>
+                </li>
+                <li class="credit-capsule neo-button" style="--credit-color: #8b5cf6;" data-speak="Chulin Cortéz José Antonio">
+                    <div class="px-6 py-4 rounded-full w-full h-full flex items-center justify-center" style="background-color: var(--bg-color);">
+                        <span class="relative z-10 font-bold" style="color: var(--text-main);">Chulin Cortéz José Antonio</span>
+                    </div>
+                </li>
+                <li class="credit-capsule neo-button" style="--credit-color: #f97316;" data-speak="Pérez Gracía Alexander">
+                    <div class="px-6 py-4 rounded-full w-full h-full flex items-center justify-center" style="background-color: var(--bg-color);">
+                        <span class="relative z-10 font-bold" style="color: var(--text-main);">Pérez Gracía Alexander</span>
+                    </div>
+                </li>
+            </ul>
+
+            <div class="flex justify-center mb-8">
+                <div class="credit-capsule neo-button" style="--credit-color: #2563eb;" data-speak="SmartBuy versión 1.0">
+                    <div class="px-6 py-4 rounded-full w-full h-full flex items-center justify-center" style="background-color: var(--bg-color);">
+                        <span class="relative z-10 font-bold" style="color: var(--accent);">SmartBuy v1.0</span>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-sm border-t border-gray-300 pt-6" style="color: var(--text-muted);" data-speak="Smart Buy. Todos los derechos reservados."><span id="copyright-year"></span> SmartBuy Accesible. All rights reserved.</p>
+        </div>
+    </footer>
+
+
+    <!-- Módulos de la aplicación -->
+    <!-- Carga de configuración y base de datos -->
+    <script src="js/config.js" defer></script>
+
+    <!-- Módulos funcionales -->
+    <script src="js/modules/utils.js" defer></script>
+    <script src="js/modules/cart.js" defer></script>
+    <script src="js/modules/products.js" defer></script>
+    <script src="js/modules/checkout.js" defer></script>
+    <script src="js/modules/ui.js" defer></script>
+    <script src="js/modules/accessibility.js" defer></script>
+
+    <!-- Script principal de inicialización -->
+    <script src="js/script.js" defer></script>
+</body>
+</html>
